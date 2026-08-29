@@ -1,5 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { fetchMenuItems, thb, type MenuItem } from "@/lib/menu";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,38 +24,8 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type MenuItem = {
-  id: string;
-  name: string;
-  en: string;
-  desc: string;
-  price: number;
-  category: string;
-};
-
-const CATEGORIES = ["ทั้งหมด", "อาหารจานเดียว", "กับข้าว", "ของทานเล่น", "ของหวาน", "เครื่องดื่ม"];
-
-const MENU: MenuItem[] = [
-  { id: "m1", name: "ผัดไทยกุ้งสด", en: "Pad Thai", desc: "เส้นจันท์ · กุ้งสด · ถั่วงอก", price: 130, category: "อาหารจานเดียว" },
-  { id: "m2", name: "กะเพราหมูสับไข่ดาว", en: "Krapao Moo", desc: "พริกกะเพราสด · ไข่ดาวกรอบ", price: 90, category: "อาหารจานเดียว" },
-  { id: "m3", name: "ข้าวมันไก่", en: "Khao Man Gai", desc: "ไก่ต้มนุ่ม · น้ำจิ้มเต้าเจี้ยว", price: 75, category: "อาหารจานเดียว" },
-  { id: "m4", name: "ข้าวหน้าเป็ด", en: "Khao Naa Ped", desc: "เป็ดย่างซอสแดง · ไข่ต้ม", price: 110, category: "อาหารจานเดียว" },
-  { id: "m5", name: "ต้มยำกุ้งน้ำข้น", en: "Tom Yum Kung", desc: "กุ้งแม่น้ำ · เห็ดฟาง", price: 250, category: "กับข้าว" },
-  { id: "m6", name: "แกงเขียวหวานไก่", en: "Green Curry", desc: "กะทิสด · มะเขือเปราะ", price: 150, category: "กับข้าว" },
-  { id: "m7", name: "ปลาทอดน้ำปลา", en: "Fried Fish", desc: "ปลากะพงทอดกรอบ · น้ำปลาพริก", price: 180, category: "กับข้าว" },
-  { id: "m8", name: "ไก่ทอดน้ำปลา", en: "Crispy Chicken", desc: "ทอดกรอบ · น้ำจิ้มแจ่ว", price: 120, category: "ของทานเล่น" },
-  { id: "m9", name: "ปอเปี๊ยะทอด", en: "Spring Rolls", desc: "สาหร่ายทะเล · ซอสพลัม", price: 95, category: "ของทานเล่น" },
-  { id: "m10", name: "ข้าวเหนียวมะม่วง", en: "Mango Sticky Rice", desc: "กะทิข้น · งาทอง", price: 100, category: "ของหวาน" },
-  { id: "m11", name: "บัวลอยมะพร้าวอ่อน", en: "Bua Loy", desc: "กะทิอ่อน · ไข่หวาน", price: 60, category: "ของหวาน" },
-  { id: "m12", name: "น้ำมะพร้าวเผา", en: "Coconut Water", desc: "มะพร้าวน้ำหอมแช่เย็น", price: 70, category: "เครื่องดื่ม" },
-  { id: "m13", name: "ชาเย็น", en: "Thai Iced Tea", desc: "ชาไทยหอมมัน · นมข้น", price: 55, category: "เครื่องดื่ม" },
-  { id: "m14", name: "น้ำมะนาวโซดา", en: "Lime Soda", desc: "มะนาวสด · น้ำผึ้ง", price: 65, category: "เครื่องดื่ม" },
-];
-
+const ALL = "ทั้งหมด";
 const TABLES = Array.from({ length: 12 }, (_, i) => i + 1);
-
-const thb = (n: number) =>
-  `฿${n.toLocaleString("th-TH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 
 type Cart = Record<string, number>;
 type OrderStats = Record<string, number>;
@@ -75,9 +47,14 @@ const saveOrderStats = (stats: OrderStats) => {
 };
 
 function Index() {
+  const { data: menu = [], isLoading } = useQuery({
+    queryKey: ["menu-items", "available"],
+    queryFn: () => fetchMenuItems(true),
+  });
+
   const [table, setTable] = useState<number | null>(7);
   const [tablePickerOpen, setTablePickerOpen] = useState(false);
-  const [category, setCategory] = useState("ทั้งหมด");
+  const [category, setCategory] = useState(ALL);
   const [search, setSearch] = useState("");
   const [cart, setCart] = useState<Cart>({});
   const [confirmed, setConfirmed] = useState<number | null>(null);
@@ -88,31 +65,36 @@ function Index() {
     setOrderStats(loadOrderStats());
   }, []);
 
+  const categories = useMemo(() => [ALL, ...Array.from(new Set(menu.map((m) => m.category)))], [menu]);
+
   const topMenus = useMemo(
     () =>
       Object.entries(orderStats)
-        .map(([id, qty]) => ({ item: MENU.find((m) => m.id === id), qty }))
+        .map(([id, qty]) => ({ item: menu.find((m) => m.id === id), qty }))
         .filter((x): x is { item: MenuItem; qty: number } => !!x.item && x.qty > 0)
         .sort((a, b) => b.qty - a.qty)
         .slice(0, 3),
-    [orderStats],
+    [orderStats, menu],
   );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return MENU.filter(
+    return menu.filter(
       (m) =>
-        (category === "ทั้งหมด" || m.category === category) &&
-        (!q || m.name.toLowerCase().includes(q) || m.en.toLowerCase().includes(q) || m.desc.toLowerCase().includes(q)),
+        (category === ALL || m.category === category) &&
+        (!q ||
+          m.name.toLowerCase().includes(q) ||
+          m.en.toLowerCase().includes(q) ||
+          m.description.toLowerCase().includes(q)),
     );
-  }, [category, search]);
+  }, [category, search, menu]);
 
   const items = useMemo(
     () =>
       Object.entries(cart)
-        .map(([id, qty]) => ({ item: MENU.find((m) => m.id === id)!, qty }))
-        .filter((x) => x.item),
-    [cart],
+        .map(([id, qty]) => ({ item: menu.find((m) => m.id === id), qty }))
+        .filter((x): x is { item: MenuItem; qty: number } => !!x.item),
+    [cart, menu],
   );
 
   const subtotal = items.reduce((s, x) => s + x.item.price * x.qty, 0);
@@ -162,42 +144,51 @@ function Index() {
             </div>
           </div>
 
-          {/* Table selector */}
-          <div className="relative">
-            <button
-              onClick={() => setTablePickerOpen((o) => !o)}
-              className="flex items-center gap-3 rounded-full border border-gold/30 bg-ink2 px-4 py-2 transition-colors hover:border-gold/60"
-              aria-label="เลือกเลขโต๊ะ"
+          <div className="flex items-center gap-3">
+            <Link
+              to="/admin"
+              className="hidden rounded-full border border-gold/30 px-4 py-2 text-[10px] uppercase tracking-[0.25em] text-cream/60 transition-colors hover:border-gold/60 hover:text-cream sm:block"
             >
-              <span className="text-[10px] uppercase tracking-[0.3em] text-cream/40">โต๊ะ</span>
-              <span className="font-display text-2xl leading-none text-goldsoft">
-                {table ? String(table).padStart(2, "0") : "—"}
-              </span>
-              <span className="text-xs text-cream/40">เปลี่ยน</span>
-            </button>
-            {tablePickerOpen && (
-              <div className="absolute right-0 z-20 mt-2 w-64 rounded-2xl border border-gold/25 bg-ink2 p-3 shadow-2xl">
-                <p className="mb-2 px-1 text-[10px] uppercase tracking-[0.3em] text-cream/40">เลือกเลขโต๊ะ</p>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {TABLES.map((t) => (
-                    <button
-                      key={t}
-                      onClick={() => {
-                        setTable(t);
-                        setTablePickerOpen(false);
-                      }}
-                      className={`grid h-11 place-items-center rounded-lg font-display text-lg transition-colors ${
-                        table === t
-                          ? "bg-gold text-ink"
-                          : "bg-ink3/60 text-cream/70 hover:bg-ink3 hover:text-cream"
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  ))}
+              จัดการเมนู
+            </Link>
+
+            {/* Table selector */}
+            <div className="relative">
+              <button
+                onClick={() => setTablePickerOpen((o) => !o)}
+                className="flex items-center gap-3 rounded-full border border-gold/30 bg-ink2 px-4 py-2 transition-colors hover:border-gold/60"
+                aria-label="เลือกเลขโต๊ะ"
+              >
+                <span className="text-[10px] uppercase tracking-[0.3em] text-cream/40">โต๊ะ</span>
+                <span className="font-display text-2xl leading-none text-goldsoft">
+                  {table ? String(table).padStart(2, "0") : "—"}
+                </span>
+                <span className="text-xs text-cream/40">เปลี่ยน</span>
+              </button>
+              {tablePickerOpen && (
+                <div className="absolute right-0 z-20 mt-2 w-64 rounded-2xl border border-gold/25 bg-ink2 p-3 shadow-2xl">
+                  <p className="mb-2 px-1 text-[10px] uppercase tracking-[0.3em] text-cream/40">เลือกเลขโต๊ะ</p>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {TABLES.map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => {
+                          setTable(t);
+                          setTablePickerOpen(false);
+                        }}
+                        className={`grid h-11 place-items-center rounded-lg font-display text-lg transition-colors ${
+                          table === t
+                            ? "bg-gold text-ink"
+                            : "bg-ink3/60 text-cream/70 hover:bg-ink3 hover:text-cream"
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </header>
 
@@ -242,12 +233,12 @@ function Index() {
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gold/50">⌕</span>
               </div>
               <span className="whitespace-nowrap text-xs text-cream/40">
-                {MENU.length} เมนู · {CATEGORIES.length - 1} หมวดหมู่
+                {menu.length} เมนู · {Math.max(categories.length - 1, 0)} หมวดหมู่
               </span>
             </div>
 
             <nav className="mb-5 flex gap-2 overflow-x-auto pb-1">
-              {CATEGORIES.map((c) => (
+              {categories.map((c) => (
                 <button
                   key={c}
                   onClick={() => setCategory(c)}
@@ -271,10 +262,20 @@ function Index() {
                     onClick={() => add(m.id)}
                     className="flex min-h-[110px] items-start justify-between gap-3 rounded-xl border border-gold/15 bg-ink2 p-4 text-left transition-colors hover:border-gold/40 active:scale-[0.98]"
                   >
-                    <div className="min-w-0">
-                      <p className="font-display text-xl leading-tight text-cream">{m.name}</p>
-                      <p className="mt-1 text-xs text-cream/40">{m.desc}</p>
-                      <p className="mt-2 text-sm text-goldsoft">{thb(m.price)}</p>
+                    <div className="flex min-w-0 gap-3">
+                      {m.image_url && (
+                        <img
+                          src={m.image_url}
+                          alt={m.name}
+                          loading="lazy"
+                          className="size-16 shrink-0 rounded-lg border border-gold/20 object-cover"
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <p className="font-display text-xl leading-tight text-cream">{m.name}</p>
+                        <p className="mt-1 text-xs text-cream/40">{m.description}</p>
+                        <p className="mt-2 text-sm text-goldsoft">{thb(m.price)}</p>
+                      </div>
                     </div>
                     <span
                       className={`grid size-9 shrink-0 place-items-center rounded-full border border-gold/40 text-lg leading-none text-gold ${
@@ -286,7 +287,8 @@ function Index() {
                   </button>
                 );
               })}
-              {filtered.length === 0 && (
+              {isLoading && <p className="col-span-full py-10 text-center text-sm text-cream/40">กำลังโหลดเมนู…</p>}
+              {!isLoading && filtered.length === 0 && (
                 <p className="col-span-full py-10 text-center text-sm text-cream/40">ไม่พบเมนูที่ค้นหา</p>
               )}
             </div>
