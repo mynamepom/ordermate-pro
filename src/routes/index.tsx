@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -56,6 +56,23 @@ const thb = (n: number) =>
   `฿${n.toLocaleString("th-TH", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 
 type Cart = Record<string, number>;
+type OrderStats = Record<string, number>;
+
+const ORDER_STATS_KEY = "maison-aurum-order-stats";
+
+const loadOrderStats = (): OrderStats => {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(ORDER_STATS_KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+};
+
+const saveOrderStats = (stats: OrderStats) => {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(ORDER_STATS_KEY, JSON.stringify(stats));
+};
 
 function Index() {
   const [table, setTable] = useState<number | null>(7);
@@ -65,6 +82,21 @@ function Index() {
   const [cart, setCart] = useState<Cart>({});
   const [confirmed, setConfirmed] = useState<number | null>(null);
   const [popKey, setPopKey] = useState(0);
+  const [orderStats, setOrderStats] = useState<OrderStats>({});
+
+  useEffect(() => {
+    setOrderStats(loadOrderStats());
+  }, []);
+
+  const topMenus = useMemo(
+    () =>
+      Object.entries(orderStats)
+        .map(([id, qty]) => ({ item: MENU.find((m) => m.id === id), qty }))
+        .filter((x): x is { item: MenuItem; qty: number } => !!x.item && x.qty > 0)
+        .sort((a, b) => b.qty - a.qty)
+        .slice(0, 3),
+    [orderStats],
+  );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -107,6 +139,12 @@ function Index() {
     if (!table || items.length === 0) return;
     setConfirmed(table);
     setCart({});
+    setOrderStats((prev) => {
+      const next = { ...prev };
+      for (const { item, qty } of items) next[item.id] = (next[item.id] ?? 0) + qty;
+      saveOrderStats(next);
+      return next;
+    });
   };
 
   return (
@@ -166,6 +204,32 @@ function Index() {
         <div className="mt-5 grid flex-1 grid-cols-1 gap-6 lg:grid-cols-[1fr_400px]">
           {/* LEFT: menu */}
           <section className="flex min-w-0 flex-col">
+            {topMenus.length > 0 && (
+              <div className="mb-5">
+                <p className="mb-2.5 flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-gold/70">
+                  <span>🔥</span> เมนูขายดี Top 3
+                </p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  {topMenus.map(({ item, qty }, i) => (
+                    <button
+                      key={item.id}
+                      onClick={() => add(item.id)}
+                      className="flex items-start gap-3 rounded-xl border border-gold/30 bg-gradient-to-br from-gold/10 to-ink2 p-4 text-left transition-colors hover:border-gold/60 active:scale-[0.98]"
+                    >
+                      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-gold font-display text-sm text-ink">
+                        {i + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-display text-lg leading-tight text-cream">{item.name}</p>
+                        <p className="mt-1 text-xs text-gold/60">สั่งแล้ว {qty} ที่</p>
+                        <p className="mt-1 text-sm text-goldsoft">{thb(item.price)}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="relative flex-1">
                 <input
