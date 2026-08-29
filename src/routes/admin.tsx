@@ -40,7 +40,7 @@ const EMPTY: MenuItemInput = {
   en: "",
   description: "",
   price: 0,
-  category: CATEGORY_OPTIONS[0],
+  category: "อาหารจานเดียว",
   image_url: null,
   is_available: true,
   sort_order: 0,
