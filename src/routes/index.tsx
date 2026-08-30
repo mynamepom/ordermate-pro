@@ -130,24 +130,24 @@ function Index() {
   };
 
   return (
-    <div className="min-h-screen bg-ink font-body text-cream antialiased">
-      <div className="mx-auto flex min-h-screen max-w-[1440px] flex-col px-4 py-5 lg:px-10">
-        {/* Header */}
-        <header className="flex items-center justify-between border-b border-gold/20 pb-5">
+    <div className="min-h-screen bg-background font-body text-foreground">
+      {/* Dark band header */}
+      <header className="bg-strong text-on-strong">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-6 py-4 lg:px-12">
           <div className="flex items-center gap-4">
-            <div className="grid size-11 place-items-center rounded-full border border-gold/50 font-display text-xl text-gold">
+            <div className="grid size-10 place-items-center rounded-xxsmall bg-primary text-base font-medium text-primary-foreground">
               M
             </div>
             <div>
-              <p className="font-display text-2xl leading-none tracking-wide text-cream">Maison Aurum</p>
-              <p className="mt-1 text-[11px] uppercase tracking-[0.35em] text-gold/70">ระบบรับออร์เดอร์</p>
+              <p className="text-lg font-medium leading-tight text-on-strong">Maison Aurum</p>
+              <p className="eyebrow text-white/60">ระบบรับออร์เดอร์</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <Link
               to="/admin"
-              className="hidden rounded-full border border-gold/30 px-4 py-2 text-[10px] uppercase tracking-[0.25em] text-cream/60 transition-colors hover:border-gold/60 hover:text-cream sm:block"
+              className="hidden rounded-full border border-white/40 px-6 py-2 text-sm font-medium text-on-strong transition-colors duration-200 hover:bg-white/10 sm:block"
             >
               จัดการเมนู
             </Link>
@@ -156,19 +156,17 @@ function Index() {
             <div className="relative">
               <button
                 onClick={() => setTablePickerOpen((o) => !o)}
-                className="flex items-center gap-3 rounded-full border border-gold/30 bg-ink2 px-4 py-2 transition-colors hover:border-gold/60"
+                className="flex items-center gap-3 rounded-full border border-white/40 px-6 py-2 text-sm font-medium text-on-strong transition-colors duration-200 hover:bg-white/10"
                 aria-label="เลือกเลขโต๊ะ"
               >
-                <span className="text-[10px] uppercase tracking-[0.3em] text-cream/40">โต๊ะ</span>
-                <span className="font-display text-2xl leading-none text-goldsoft">
-                  {table ? String(table).padStart(2, "0") : "—"}
-                </span>
-                <span className="text-xs text-cream/40">เปลี่ยน</span>
+                <span className="text-white/60">โต๊ะ</span>
+                <span className="text-lg leading-none">{table ? String(table).padStart(2, "0") : "—"}</span>
+                <span className="text-white/60">เปลี่ยน</span>
               </button>
               {tablePickerOpen && (
-                <div className="absolute right-0 z-20 mt-2 w-64 rounded-2xl border border-gold/25 bg-ink2 p-3 shadow-2xl">
-                  <p className="mb-2 px-1 text-[10px] uppercase tracking-[0.3em] text-cream/40">เลือกเลขโต๊ะ</p>
-                  <div className="grid grid-cols-4 gap-1.5">
+                <div className="absolute right-0 z-20 mt-2 w-64 rounded-lg border border-border-weak bg-card p-4 text-foreground">
+                  <p className="mb-3 text-sm font-medium text-text-strong">เลือกเลขโต๊ะ</p>
+                  <div className="grid grid-cols-4 gap-2">
                     {TABLES.map((t) => (
                       <button
                         key={t}
@@ -176,10 +174,10 @@ function Index() {
                           setTable(t);
                           setTablePickerOpen(false);
                         }}
-                        className={`grid h-11 place-items-center rounded-lg font-display text-lg transition-colors ${
+                        className={`grid h-10 place-items-center rounded-xsmall border text-sm transition-colors duration-200 ${
                           table === t
-                            ? "bg-gold text-ink"
-                            : "bg-ink3/60 text-cream/70 hover:bg-ink3 hover:text-cream"
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border-weak hover:border-border hover:bg-muted"
                         }`}
                       >
                         {t}
@@ -190,30 +188,30 @@ function Index() {
               )}
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <div className="mt-5 grid flex-1 grid-cols-1 gap-6 lg:grid-cols-[1fr_400px]">
+      <div className="mx-auto max-w-[1440px] px-6 py-8 lg:px-12">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_400px]">
           {/* LEFT: menu */}
           <section className="flex min-w-0 flex-col">
             {topMenus.length > 0 && (
-              <div className="mb-5">
-                <p className="mb-2.5 flex items-center gap-2 text-[11px] uppercase tracking-[0.3em] text-gold/70">
-                  <span>🔥</span> เมนูขายดี Top 3
-                </p>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="mb-8">
+                <p className="eyebrow mb-3 text-text-weak">เมนูขายดี 3 อันดับแรก</p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   {topMenus.map(({ item, qty }, i) => (
                     <button
                       key={item.id}
                       onClick={() => add(item.id)}
-                      className="flex items-start gap-3 rounded-xl border border-gold/30 bg-gradient-to-br from-gold/10 to-ink2 p-4 text-left transition-colors hover:border-gold/60 active:scale-[0.98]"
+                      className="flex items-start gap-3 rounded-lg border border-border-weak bg-card p-6 text-left transition-colors duration-200 hover:border-border"
                     >
-                      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-gold font-display text-sm text-ink">
+                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ok-surface text-sm font-medium text-ok-icon">
                         {i + 1}
                       </span>
                       <div className="min-w-0">
-                        <p className="font-display text-lg leading-tight text-cream">{item.name}</p>
-                        <p className="mt-1 text-xs text-gold/60">สั่งแล้ว {qty} ที่</p>
-                        <p className="mt-1 text-sm text-goldsoft">{thb(item.price)}</p>
+                        <p className="text-[1.125rem] font-medium leading-6 text-text-strong">{item.name}</p>
+                        <p className="mt-1 text-sm text-text-weak">สั่งแล้ว {qty} ที่</p>
+                        <p className="mt-2 text-sm font-medium text-primary">{thb(item.price)}</p>
                       </div>
                     </button>
                   ))}
@@ -221,31 +219,34 @@ function Index() {
               </div>
             )}
 
-            <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="relative flex-1">
+                <label className="sr-only" htmlFor="menu-search">
+                  ค้นหาเมนู
+                </label>
                 <input
+                  id="menu-search"
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="ค้นหาเมนู เช่น ผัดไทย, ต้มยำ…"
-                  className="w-full rounded-full border border-gold/20 bg-ink2 py-3 pl-10 pr-4 text-sm text-cream placeholder:text-cream/30 focus:border-gold/60 focus:outline-none"
+                  className="min-h-9 w-full rounded-xsmall border border-border bg-card px-3 py-2 text-base text-foreground placeholder:text-text-weak focus:outline-none"
                 />
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-gold/50">⌕</span>
               </div>
-              <span className="whitespace-nowrap text-xs text-cream/40">
+              <span className="whitespace-nowrap text-sm text-text-weak">
                 {menu.length} เมนู · {Math.max(categories.length - 1, 0)} หมวดหมู่
               </span>
             </div>
 
-            <nav className="mb-5 flex gap-2 overflow-x-auto pb-1">
+            <nav className="mb-6 flex gap-2 overflow-x-auto pb-1">
               {categories.map((c) => (
                 <button
                   key={c}
                   onClick={() => setCategory(c)}
-                  className={`whitespace-nowrap rounded-full px-4 py-2.5 text-xs uppercase tracking-[0.2em] transition-colors ${
+                  className={`h-9 whitespace-nowrap rounded-full border px-6 text-sm font-medium transition-colors duration-200 ${
                     category === c
-                      ? "bg-gold font-medium text-ink"
-                      : "border border-gold/30 text-cream/70 hover:text-cream"
+                      ? "border-transparent bg-primary text-primary-foreground"
+                      : "border-border text-foreground hover:bg-muted"
                   }`}
                 >
                   {c}
@@ -253,33 +254,37 @@ function Index() {
               ))}
             </nav>
 
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filtered.map((m) => {
                 const qty = cart[m.id] ?? 0;
                 return (
                   <button
                     key={m.id}
                     onClick={() => add(m.id)}
-                    className="flex min-h-[110px] items-start justify-between gap-3 rounded-xl border border-gold/15 bg-ink2 p-4 text-left transition-colors hover:border-gold/40 active:scale-[0.98]"
+                    className="group flex min-h-[110px] items-start justify-between gap-4 rounded-lg border border-border-weak bg-card p-6 text-left transition-colors duration-200 hover:border-border"
                   >
-                    <div className="flex min-w-0 gap-3">
+                    <div className="flex min-w-0 gap-4">
                       {m.image_url && (
                         <img
                           src={m.image_url}
                           alt={m.name}
                           loading="lazy"
-                          className="size-16 shrink-0 rounded-lg border border-gold/20 object-cover"
+                          className="size-16 shrink-0 rounded-xsmall border border-border-weak object-cover"
                         />
                       )}
                       <div className="min-w-0">
-                        <p className="font-display text-xl leading-tight text-cream">{m.name}</p>
-                        <p className="mt-1 text-xs text-cream/40">{m.description}</p>
-                        <p className="mt-2 text-sm text-goldsoft">{thb(m.price)}</p>
+                        <p className="text-[1.125rem] font-medium leading-6 text-text-strong transition-colors duration-200 group-hover:text-primary">
+                          {m.name}
+                        </p>
+                        <p className="mt-1 text-sm text-text-weak">{m.description}</p>
+                        <p className="mt-2 text-sm font-medium text-primary">{thb(m.price)}</p>
                       </div>
                     </div>
                     <span
-                      className={`grid size-9 shrink-0 place-items-center rounded-full border border-gold/40 text-lg leading-none text-gold ${
-                        qty > 0 ? "bg-gold text-ink" : ""
+                      className={`grid size-8 shrink-0 place-items-center rounded-full border text-base leading-none transition-colors duration-200 ${
+                        qty > 0
+                          ? "border-transparent bg-primary text-primary-foreground"
+                          : "border-border text-foreground"
                       }`}
                     >
                       {qty > 0 ? qty : "+"}
@@ -287,39 +292,42 @@ function Index() {
                   </button>
                 );
               })}
-              {isLoading && <p className="col-span-full py-10 text-center text-sm text-cream/40">กำลังโหลดเมนู…</p>}
+              {isLoading && <p className="col-span-full py-12 text-center text-sm text-text-weak">กำลังโหลดเมนู…</p>}
               {!isLoading && filtered.length === 0 && (
-                <p className="col-span-full py-10 text-center text-sm text-cream/40">ไม่พบเมนูที่ค้นหา</p>
+                <p className="col-span-full py-12 text-center text-sm text-text-weak">ไม่พบเมนูที่ค้นหา</p>
               )}
             </div>
           </section>
 
           {/* RIGHT: order summary */}
-          <aside className="flex flex-col rounded-2xl border border-gold/20 bg-ink2 p-6 lg:sticky lg:top-5 lg:self-start">
+          <aside className="flex flex-col rounded-lg border border-border-weak bg-card p-6 lg:sticky lg:top-8 lg:self-start">
             <div className="flex items-center justify-between">
-              <h2 className="font-display text-2xl text-cream">สรุปออร์เดอร์</h2>
-              <span className="text-[10px] uppercase tracking-[0.3em] text-gold/70">
+              <h2 className="text-[1.375rem] leading-7">สรุปออร์เดอร์</h2>
+              <span className="text-sm text-text-weak">
                 โต๊ะ {table ? String(table).padStart(2, "0") : "—"}
               </span>
             </div>
 
             {confirmed !== null && (
-              <div className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-3 text-center text-sm text-goldsoft">
-                ✓ ส่งออร์เดอร์โต๊ะ {String(confirmed).padStart(2, "0")} เข้าครัวเรียบร้อยแล้ว
+              <div className="mt-4 flex items-start gap-2 rounded-xsmall bg-ok-surface p-3 text-sm text-text-strong">
+                <span aria-hidden className="text-ok-icon">
+                  ✓
+                </span>
+                <span>ส่งออร์เดอร์โต๊ะ {String(confirmed).padStart(2, "0")} เข้าครัวเรียบร้อยแล้ว</span>
               </div>
             )}
 
-            <div className="mt-5 max-h-[340px] flex-1 space-y-4 overflow-y-auto">
+            <div className="mt-6 max-h-[340px] flex-1 space-y-4 overflow-y-auto">
               {items.length === 0 && (
-                <p className="py-8 text-center text-sm text-cream/40">
+                <p className="py-8 text-center text-sm text-text-weak">
                   ยังไม่มีรายการ — แตะเมนูด้านซ้ายเพื่อเพิ่มรายการ
                 </p>
               )}
               {items.map(({ item, qty }) => (
                 <div key={item.id} className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-display text-lg leading-tight text-cream">{item.name}</p>
-                    <p className="mt-1 text-xs text-cream/40">
+                    <p className="text-base font-medium leading-6 text-text-strong">{item.name}</p>
+                    <p className="mt-1 text-sm text-text-weak">
                       {thb(item.price)} × {qty}
                     </p>
                   </div>
@@ -328,37 +336,37 @@ function Index() {
                       <button
                         onClick={() => dec(item.id)}
                         aria-label="ลดจำนวน"
-                        className="grid size-8 place-items-center rounded-full border border-gold/30 text-sm leading-none text-cream/60 transition-colors hover:border-gold hover:text-cream"
+                        className="grid size-7 place-items-center rounded-full border border-border text-sm leading-none transition-colors duration-200 hover:bg-muted"
                       >
                         −
                       </button>
-                      <span className="w-5 text-center text-sm text-cream">{qty}</span>
+                      <span className="w-5 text-center text-sm">{qty}</span>
                       <button
                         onClick={() => inc(item.id)}
                         aria-label="เพิ่มจำนวน"
-                        className="grid size-8 place-items-center rounded-full border border-gold/30 text-sm leading-none text-cream/60 transition-colors hover:border-gold hover:text-cream"
+                        className="grid size-7 place-items-center rounded-full border border-border text-sm leading-none transition-colors duration-200 hover:bg-muted"
                       >
                         +
                       </button>
                     </div>
-                    <span className="w-16 text-right text-sm text-goldsoft">{thb(item.price * qty)}</span>
+                    <span className="w-16 text-right text-sm">{thb(item.price * qty)}</span>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 space-y-2 border-t border-gold/15 pt-5 text-sm">
-              <div className="flex justify-between text-cream/50">
+            <div className="mt-6 space-y-2 border-t border-border-weak pt-6 text-sm">
+              <div className="flex justify-between text-text-weak">
                 <span>ยอดรวม</span>
                 <span>{thb(subtotal)}</span>
               </div>
-              <div className="flex justify-between text-cream/50">
+              <div className="flex justify-between text-text-weak">
                 <span>ภาษี 7%</span>
                 <span>{thb(vat)}</span>
               </div>
               <div className="flex items-baseline justify-between pt-2">
-                <span className="text-cream/70">รวมทั้งหมด</span>
-                <span key={popKey} className="animate-ticket-pop font-display text-3xl text-goldsoft">
+                <span className="font-medium text-text-strong">รวมทั้งหมด</span>
+                <span key={popKey} className="animate-ticket-pop text-[2rem] font-medium leading-10 text-text-strong">
                   {thb(total)}
                 </span>
               </div>
@@ -367,11 +375,11 @@ function Index() {
             <button
               onClick={confirm}
               disabled={!table || items.length === 0}
-              className="mt-6 w-full rounded-full bg-gold py-4 font-semibold tracking-wide text-ink transition-colors hover:bg-goldsoft disabled:cursor-not-allowed disabled:opacity-40"
+              className="mt-6 h-12 w-full rounded-full bg-primary px-7 font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary-hover disabled:pointer-events-none disabled:bg-muted disabled:text-text-weak"
             >
               สรุปออร์เดอร์ {itemCount > 0 ? `· ${itemCount} รายการ` : ""}
             </button>
-            <p className="mt-3 text-center text-[11px] text-cream/30">
+            <p className="mt-3 text-center text-xs text-text-weak">
               {table ? `ส่งเข้าครัว · โต๊ะ ${String(table).padStart(2, "0")}` : "กรุณาเลือกเลขโต๊ะก่อนยืนยัน"}
             </p>
           </aside>
