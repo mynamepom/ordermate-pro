@@ -47,8 +47,8 @@ const EMPTY: MenuItemInput = {
 };
 
 const inputClass =
-  "w-full rounded-xl border border-gold/25 bg-ink3/50 px-4 py-3 text-sm text-cream placeholder:text-cream/30 focus:border-gold/60 focus:outline-none";
-const labelClass = "mb-1.5 block text-[10px] uppercase tracking-[0.3em] text-cream/40";
+  "min-h-9 w-full rounded-xsmall border border-border bg-card px-3 py-2 text-base text-foreground placeholder:text-text-weak focus:outline-none";
+const labelClass = "mb-1.5 block text-sm font-medium text-foreground";
 
 function AdminPage() {
   const qc = useQueryClient();
@@ -61,8 +61,14 @@ function AdminPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busyImage, setBusyImage] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [noticeError, setNoticeError] = useState(false);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["menu-items"] });
+
+  const showError = (msg: string) => {
+    setNoticeError(true);
+    setNotice(msg);
+  };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -71,20 +77,22 @@ function AdminPage() {
       else await createMenuItem(payload);
     },
     onSuccess: () => {
+      setNoticeError(false);
       setNotice(editingId ? "บันทึกการแก้ไขแล้ว" : "เพิ่มเมนูใหม่แล้ว");
       resetForm();
       invalidate();
     },
-    onError: (e: Error) => setNotice(`ผิดพลาด: ${e.message}`),
+    onError: (e: Error) => showError(`บันทึกไม่สำเร็จ: ${e.message}`),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteMenuItem(id),
     onSuccess: () => {
+      setNoticeError(false);
       setNotice("ลบเมนูแล้ว");
       invalidate();
     },
-    onError: (e: Error) => setNotice(`ผิดพลาด: ${e.message}`),
+    onError: (e: Error) => showError(`ลบไม่สำเร็จ: ${e.message}`),
   });
 
   const resetForm = () => {
@@ -115,50 +123,55 @@ function AdminPage() {
       const dataUrl = await fileToResizedDataUrl(file);
       setForm((f) => ({ ...f, image_url: dataUrl }));
     } catch (e) {
-      setNotice(`อัปโหลดรูปไม่สำเร็จ: ${(e as Error).message}`);
+      showError(`อัปโหลดรูปไม่สำเร็จ: ${(e as Error).message}`);
     } finally {
       setBusyImage(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-ink font-body text-cream antialiased">
-      <div className="mx-auto flex min-h-screen max-w-[1440px] flex-col px-4 py-5 lg:px-10">
-        <header className="flex flex-wrap items-center justify-between gap-4 border-b border-gold/20 pb-5">
+    <div className="min-h-screen bg-background font-body text-foreground">
+      <header className="bg-strong text-on-strong">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-6 py-4 lg:px-12">
           <div className="flex items-center gap-4">
-            <div className="grid size-11 place-items-center rounded-full border border-gold/50 font-display text-xl text-gold">
+            <div className="grid size-10 place-items-center rounded-xxsmall bg-primary text-base font-medium text-primary-foreground">
               M
             </div>
             <div>
-              <h1 className="font-display text-2xl leading-none tracking-wide text-cream">
-                Maison Aurum · หลังบ้าน
-              </h1>
-              <p className="mt-1 text-[11px] uppercase tracking-[0.35em] text-gold/70">จัดการเมนูอาหาร</p>
+              <h1 className="text-lg font-medium leading-tight text-on-strong">Maison Aurum · หลังบ้าน</h1>
+              <p className="eyebrow text-white/60">จัดการเมนูอาหาร</p>
             </div>
           </div>
           <Link
             to="/"
-            className="rounded-full border border-gold/30 px-5 py-2.5 text-xs uppercase tracking-[0.2em] text-cream/70 transition-colors hover:border-gold/60 hover:text-cream"
+            className="rounded-full border border-white/40 px-6 py-2 text-sm font-medium text-on-strong transition-colors duration-200 hover:bg-white/10"
           >
-            ← หน้ารับออร์เดอร์
+            หน้ารับออร์เดอร์
           </Link>
-        </header>
+        </div>
+      </header>
 
-        <div className="mt-5 grid flex-1 grid-cols-1 gap-6 lg:grid-cols-[420px_1fr]">
+      <div className="mx-auto max-w-[1440px] px-6 py-8 lg:px-12">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[420px_1fr]">
           {/* Form */}
-          <section className="rounded-2xl border border-gold/20 bg-ink2 p-6 lg:sticky lg:top-5 lg:self-start">
-            <h2 className="font-display text-2xl text-cream">
-              {editingId ? "แก้ไขเมนู" : "เพิ่มเมนูใหม่"}
-            </h2>
+          <section className="rounded-lg border border-border-weak bg-card p-6 lg:sticky lg:top-8 lg:self-start">
+            <h2 className="text-[1.375rem] leading-7">{editingId ? "แก้ไขเมนู" : "เพิ่มเมนูใหม่"}</h2>
 
             {notice && (
-              <div className="mt-4 rounded-xl border border-gold/40 bg-gold/10 p-3 text-center text-sm text-goldsoft">
+              <div
+                className={`mt-4 rounded-xsmall p-3 text-sm text-text-strong ${
+                  noticeError ? "bg-critical-surface" : "bg-ok-surface"
+                }`}
+              >
+                <span aria-hidden className={noticeError ? "text-critical-text" : "text-ok-icon"}>
+                  {noticeError ? "!" : "✓"}
+                </span>{" "}
                 {notice}
               </div>
             )}
 
             <form
-              className="mt-5 space-y-4"
+              className="mt-6 space-y-4"
               onSubmit={(e) => {
                 e.preventDefault();
                 setNotice(null);
@@ -205,7 +218,7 @@ function AdminPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass} htmlFor="price">
                     ราคา (บาท)
@@ -247,7 +260,7 @@ function AdminPage() {
                   className={inputClass}
                 >
                   {CATEGORY_OPTIONS.map((c) => (
-                    <option key={c} value={c} className="bg-ink2">
+                    <option key={c} value={c}>
                       {c}
                     </option>
                   ))}
@@ -259,11 +272,11 @@ function AdminPage() {
                   รูปภาพเมนู
                 </label>
                 <div className="flex items-center gap-4">
-                  <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-xl border border-gold/25 bg-ink3/50">
+                  <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-xsmall border border-border-weak bg-muted">
                     {form.image_url ? (
                       <img src={form.image_url} alt={form.name || "ตัวอย่างรูปเมนู"} className="size-full object-cover" />
                     ) : (
-                      <span className="text-xs text-cream/30">ไม่มีรูป</span>
+                      <span className="text-xs text-text-weak">ไม่มีรูป</span>
                     )}
                   </div>
                   <div className="min-w-0 flex-1 space-y-2">
@@ -272,14 +285,14 @@ function AdminPage() {
                       type="file"
                       accept="image/*"
                       onChange={(e) => onPickImage(e.target.files?.[0])}
-                      className="w-full text-xs text-cream/60 file:mr-3 file:rounded-full file:border-0 file:bg-gold file:px-4 file:py-2 file:text-xs file:text-ink"
+                      className="w-full text-sm text-text-weak file:mr-3 file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-medium file:text-primary-foreground"
                     />
-                    {busyImage && <p className="text-xs text-gold/70">กำลังประมวลผลรูป…</p>}
+                    {busyImage && <p className="text-sm text-text-weak">กำลังประมวลผลรูป…</p>}
                     {form.image_url && (
                       <button
                         type="button"
                         onClick={() => setForm({ ...form, image_url: null })}
-                        className="text-xs text-cream/40 underline underline-offset-4 hover:text-cream"
+                        className="text-sm font-medium text-primary underline underline-offset-4"
                       >
                         ลบรูปนี้
                       </button>
@@ -288,12 +301,12 @@ function AdminPage() {
                 </div>
               </div>
 
-              <label className="flex items-center gap-3 text-sm text-cream/70">
+              <label className="flex items-center gap-3 text-base">
                 <input
                   type="checkbox"
                   checked={form.is_available}
                   onChange={(e) => setForm({ ...form, is_available: e.target.checked })}
-                  className="size-4 accent-[var(--gold)]"
+                  className="size-4 accent-[var(--primary)]"
                 />
                 เปิดขาย (แสดงบนหน้ารับออร์เดอร์)
               </label>
@@ -302,7 +315,7 @@ function AdminPage() {
                 <button
                   type="submit"
                   disabled={saveMutation.isPending || busyImage}
-                  className="flex-1 rounded-full bg-gold py-3.5 font-semibold tracking-wide text-ink transition-colors hover:bg-goldsoft disabled:opacity-40"
+                  className="h-12 flex-1 rounded-full bg-primary px-7 font-medium text-primary-foreground transition-colors duration-200 hover:bg-primary-hover disabled:pointer-events-none disabled:bg-muted disabled:text-text-weak"
                 >
                   {saveMutation.isPending ? "กำลังบันทึก…" : editingId ? "บันทึกการแก้ไข" : "เพิ่มเมนู"}
                 </button>
@@ -310,7 +323,7 @@ function AdminPage() {
                   <button
                     type="button"
                     onClick={resetForm}
-                    className="rounded-full border border-gold/30 px-5 py-3.5 text-sm text-cream/70 hover:text-cream"
+                    className="h-12 rounded-full border border-border px-7 font-medium text-foreground transition-colors duration-200 hover:bg-muted"
                   >
                     ยกเลิก
                   </button>
@@ -322,45 +335,43 @@ function AdminPage() {
           {/* List */}
           <section className="min-w-0">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-2xl text-cream">รายการเมนูทั้งหมด</h2>
-              <span className="text-xs text-cream/40">{items.length} เมนู</span>
+              <h2 className="text-[1.375rem] leading-7">รายการเมนูทั้งหมด</h2>
+              <span className="text-sm text-text-weak">{items.length} เมนู</span>
             </div>
 
-            {isLoading && <p className="py-10 text-center text-sm text-cream/40">กำลังโหลดเมนู…</p>}
+            {isLoading && <p className="py-12 text-center text-sm text-text-weak">กำลังโหลดเมนู…</p>}
             {error && (
-              <p className="py-10 text-center text-sm text-destructive">
+              <p className="rounded-xsmall bg-critical-surface p-3 text-sm text-text-strong">
                 โหลดเมนูไม่สำเร็จ: {(error as Error).message}
               </p>
             )}
 
-            <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
               {items.map((m) => (
                 <article
                   key={m.id}
-                  className={`flex gap-4 rounded-xl border border-gold/15 bg-ink2 p-4 ${
-                    m.is_available ? "" : "opacity-55"
-                  }`}
+                  className="flex gap-4 rounded-lg border border-border-weak bg-card p-6 transition-colors duration-200 hover:border-border"
                 >
-                  <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-lg border border-gold/20 bg-ink3/50">
+                  <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-xsmall border border-border-weak bg-muted">
                     {m.image_url ? (
                       <img src={m.image_url} alt={m.name} loading="lazy" className="size-full object-cover" />
                     ) : (
-                      <span className="text-[10px] text-cream/30">ไม่มีรูป</span>
+                      <span className="text-xs text-text-weak">ไม่มีรูป</span>
                     )}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="font-display text-xl leading-tight text-cream">{m.name}</p>
-                    <p className="mt-0.5 text-xs text-cream/40">
+                    <p className="text-[1.125rem] font-medium leading-6 text-text-strong">{m.name}</p>
+                    <p className="mt-1 text-sm text-text-weak">
                       {m.en || "—"} · {m.category}
                       {!m.is_available && " · ปิดขาย"}
                     </p>
-                    <p className="mt-1 text-xs text-cream/40">{m.description}</p>
-                    <p className="mt-1.5 text-sm text-goldsoft">{thb(m.price)}</p>
+                    <p className="mt-1 text-sm text-text-weak">{m.description}</p>
+                    <p className="mt-2 text-sm font-medium text-primary">{thb(m.price)}</p>
                   </div>
                   <div className="flex shrink-0 flex-col justify-center gap-2">
                     <button
                       onClick={() => startEdit(m)}
-                      className="rounded-full border border-gold/40 px-4 py-1.5 text-xs text-gold transition-colors hover:bg-gold hover:text-ink"
+                      className="h-8 rounded-full border border-border px-4 text-sm font-medium transition-colors duration-200 hover:bg-muted"
                     >
                       แก้ไข
                     </button>
@@ -368,7 +379,7 @@ function AdminPage() {
                       onClick={() => {
                         if (window.confirm(`ลบเมนู "${m.name}" ?`)) deleteMutation.mutate(m.id);
                       }}
-                      className="rounded-full border border-destructive/50 px-4 py-1.5 text-xs text-destructive transition-colors hover:bg-destructive hover:text-cream"
+                      className="h-8 rounded-full border border-border px-4 text-sm font-medium text-critical-text transition-colors duration-200 hover:bg-critical-surface"
                     >
                       ลบ
                     </button>
@@ -378,7 +389,7 @@ function AdminPage() {
             </div>
 
             {!isLoading && items.length === 0 && (
-              <p className="py-10 text-center text-sm text-cream/40">ยังไม่มีเมนู — เพิ่มเมนูแรกจากฟอร์มด้านซ้าย</p>
+              <p className="py-12 text-center text-sm text-text-weak">ยังไม่มีเมนู — เพิ่มเมนูแรกจากฟอร์มด้านซ้าย</p>
             )}
           </section>
         </div>
